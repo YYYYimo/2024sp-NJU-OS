@@ -11,6 +11,9 @@ start:
 	movw $0x7d00, %ax
 	movw %ax, %sp # setting stack pointer to 0x7d00
 	# TODO:通过中断输出Hello World
+	pushw $13 # pushing the size to print into stack
+	pushw $message # pushing the address of message into stack
+	callw displayStr
 
 loop:
 	jmp loop
@@ -18,7 +21,17 @@ loop:
 message:
 	.string "Hello, World!\n\0"
 
-
+displayStr:
+	pushw %bp
+	movw 4(%esp), %ax
+	movw %ax, %bp
+	movw 6(%esp), %cx
+	movw $0x1301, %ax
+	movw $0x000c, %bx
+	movw $0x0000, %dx
+	int $0x10
+	popw %bp
+	ret
 
 # TODO: This is lab1.2
 /* Protected Mode Hello World */
@@ -31,6 +44,7 @@ start:
 	movw %ax, %es
 	movw %ax, %ss
 	# TODO:关闭中断
+	cli
 
 
 	# 启动A20总线
@@ -42,7 +56,9 @@ start:
 	data32 addr32 lgdt gdtDesc # loading gdtr, data32, addr32
 
 	# TODO：设置CR0的PE位（第0位）为1
-
+	movl %cr0, %eax
+	orl $0x1, %eax
+	movl %eax, %cr0 
 
 
 	# 长跳转切换至保护模式
@@ -61,7 +77,15 @@ start32:
 	movl $0x8000, %eax # setting esp
 	movl %eax, %esp
 	# TODO:输出Hello World
+	movl $4, %eax
+	movl $1, %ebx
+	movl $message, %ecx
+	movl $13, %edx
+	int $0x80
 
+	movl $1, %eax
+	movl $0, %ebx
+	int $0x80
 
 
 loop32:
@@ -97,7 +121,7 @@ gdtDesc:
 	.long gdt 
 
 
-TODO: This is lab1.3
+#TODO: This is lab1.3
 /* Protected Mode Loading Hello World APP */
 .code16
 
