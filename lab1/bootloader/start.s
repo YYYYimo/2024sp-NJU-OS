@@ -77,15 +77,8 @@ start32:
 	movl $0x8000, %eax # setting esp
 	movl %eax, %esp
 	# TODO:输出Hello World
-	movl $4, %eax
-	movl $1, %ebx
-	movl $message, %ecx
-	movl $13, %edx
-	int $0x80
-
-	movl $1, %eax
-	movl $0, %ebx
-	int $0x80
+	
+	jmp bootMain
 
 
 loop32:
@@ -105,16 +98,16 @@ gdt: # 8 bytes for each table entry, at least 1 entry
 	.byte 0,0,0,0
 
 	# TODO：code segment entry
-	.word
-	.byte 
+	.word 0xffff,0
+	.byte 0,0,0xcf,0
 
 	# TODO：data segment entry
-	.word
-	.byte 
+	.word 0xffff,0
+	.byte 0,0,0xcf,0
 
 	# TODO：graphics segment entry
-	.word
-	.byte 
+	.word 0xffff,0x8000
+	.byte 0x0b,0,0xcf,0
 
 gdtDesc: 
 	.word (gdtDesc - gdt -1) 
