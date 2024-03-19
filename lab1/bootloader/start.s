@@ -77,9 +77,21 @@ start32:
 	movl $0x8000, %eax # setting esp
 	movl %eax, %esp
 	# TODO:输出Hello World
-	
-	jmp bootMain
-
+	movw $0x0d48, 0xb8000
+	movw $0x0d65, 0xb8002
+	movw $0x0d6c, 0xb8004
+	movw $0x0d6c, 0xb8006
+	movw $0x0d6f, 0xb8008
+	movw $0x0d2c, 0xb800a
+	movw $0x0d20, 0xb800c
+	movw $0x0d57, 0xb800e
+	movw $0x0d6f, 0xb8010
+	movw $0x0d72, 0xb8012
+	movw $0x0d6c, 0xb8014
+	movw $0x0d64, 0xb8016
+	movw $0x0d21, 0xb8018
+	movw $0x000a, 0xb801a
+	movw $0x0000, 0xb801c
 
 loop32:
 	jmp loop32
@@ -99,15 +111,15 @@ gdt: # 8 bytes for each table entry, at least 1 entry
 
 	# TODO：code segment entry
 	.word 0xffff,0
-	.byte 0,0,0xcf,0
+	.byte 0,0x9a,0xcf,0
 
 	# TODO：data segment entry
 	.word 0xffff,0
-	.byte 0,0,0xcf,0
+	.byte 0,0x92,0xcf,0
 
 	# TODO：graphics segment entry
 	.word 0xffff,0x8000
-	.byte 0x0b,0,0xcf,0
+	.byte 0x0b,0x92,0xcf,0
 
 gdtDesc: 
 	.word (gdtDesc - gdt -1) 
@@ -125,7 +137,7 @@ start:
 	movw %ax, %es
 	movw %ax, %ss
 	# TODO:关闭中断
-
+	cli
 
 	# 启动A20总线
 	inb $0x92, %al 
@@ -136,6 +148,9 @@ start:
 	data32 addr32 lgdt gdtDesc # loading gdtr, data32, addr32
 
 	# TODO：设置CR0的PE位（第0位）为1
+	movl %cr0, %eax
+	orl $0x1, %eax
+	movl %eax, %cr0 
 
 
 	# 长跳转切换至保护模式
@@ -164,16 +179,16 @@ gdt: # 8 bytes for each table entry, at least 1 entry
 	.byte 0,0,0,0
 
 	# TODO：code segment entry
-	.word
-	.byte 
+	.word 0xffff,0
+	.byte 0,0x9a,0xcf,0
 
 	# TODO：data segment entry
-	.word
-	.byte 
+	.word 0xffff,0
+	.byte 0,0x92,0xcf,0
 
 	# TODO：graphics segment entry
-	.word
-	.byte 
+	.word 0xffff,0x8000
+	.byte 0x0b,0x92,0xcf,0
 
 gdtDesc: 
 	.word (gdtDesc - gdt - 1) 
