@@ -12,8 +12,8 @@ start:
 	movw %ax, %sp # setting stack pointer to 0x7d00
 	# TODO:通过中断输出Hello World
 	pushw $13 # pushing the size to print into stack
-	pushw $message # pushing the address of message into stack
-	callw displayStr
+	pushl $message # pushing the address of message into stack
+	calll displayStr
 
 loop:
 	jmp loop

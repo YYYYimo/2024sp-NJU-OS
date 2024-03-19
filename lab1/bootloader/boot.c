@@ -4,7 +4,7 @@
 
 void bootMain(void) {
 	//TODO
-	
+	readSect(0x8c00, 1000);
 }
 
 
