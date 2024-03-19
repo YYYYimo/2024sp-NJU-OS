@@ -4,14 +4,27 @@
 
 void bootMain(void) {
 	//TODO
-	readSect(0x8c00, 1000);
+	/**
+	 * This code represents the bootloader's entry point.
+	 * It reads a sector from a specific memory address (0x8c00) into the destination (dst) buffer.
+	 * Then, it sets the entry point of the bootloader to the address 0x8c00 and jumps to it.
+	 */
+	void *dst = (void *)0x8c00;
+	readSect(dst, 1);
+	void (*entry)(void) = (void *)0x8c00;
+	entry();
 }
 
-
-void waitDisk(void) { // waiting for disk
+/**
+ * Waits for the disk to be ready.
+ * This function continuously checks the status register of the disk controller
+ * until the disk is ready for the next operation.
+ */
+void waitDisk(void) {
 	while((inByte(0x1F7) & 0xC0) != 0x40);
 }
 
+ 
 void readSect(void *dst, int offset) { // reading a sector of disk
 	int i;
 	waitDisk();
