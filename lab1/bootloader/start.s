@@ -1,5 +1,6 @@
+/*
 # TODO: This is lab1.1
-/* Real Mode Hello World */
+# Real Mode Hello World 
 .code16
 
 .global start
@@ -35,7 +36,7 @@ displayStr:
 
 
 # TODO: This is lab1.2
-/* Protected Mode Hello World */
+# Protected Mode Hello World 
 .code16
 
 .global start
@@ -125,7 +126,7 @@ gdt: # 8 bytes for each table entry, at least 1 entry
 gdtDesc: 
 	.word (gdtDesc - gdt -1) 
 	.long gdt 
-
+*/
 
 #TODO: This is lab1.3
 /* Protected Mode Loading Hello World APP */
