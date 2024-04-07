@@ -1,22 +1,23 @@
 #ifndef BOOT_H
 #define BOOT_H
 
+
 struct ELFHeader {
-	unsigned int   magic;
-	unsigned char  elf[12];
-	unsigned short type;
-	unsigned short machine;
-	unsigned int   version;
-	unsigned int   entry;
-	unsigned int   phoff;
-	unsigned int   shoff;
-	unsigned int   flags;
-	unsigned short ehsize;
-	unsigned short phentsize;
-	unsigned short phnum;
-	unsigned short shentsize;
-	unsigned short shnum;
-	unsigned short shstrndx;
+	unsigned int   magic;       /**< Magic number identifying the file as an ELF file. */
+	unsigned char  elf[12];     /**< Identification bytes. */
+	unsigned short type;        /**< Type of the ELF file. */
+	unsigned short machine;     /**< Target architecture of the ELF file. */
+	unsigned int   version;     /**< Version of the ELF file. */
+	unsigned int   entry;       /**< Entry point of the ELF file. */
+	unsigned int   phoff;       /**< Program header table offset. */
+	unsigned int   shoff;       /**< Section header table offset. */
+	unsigned int   flags;       /**< Processor-specific flags. */
+	unsigned short ehsize;      /**< Size of the ELF header. */
+	unsigned short phentsize;   /**< Size of each program header entry. */
+	unsigned short phnum;       /**< Number of program header entries. */
+	unsigned short shentsize;   /**< Size of each section header entry. */
+	unsigned short shnum;       /**< Number of section header entries. */
+	unsigned short shstrndx;    /**< Index of the section header table entry that contains the section names. */
 };
 
 /* ELF32 Program header */
