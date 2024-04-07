@@ -31,8 +31,17 @@ void irqHandle(struct TrapFrame *tf) { // pointer tf = esp
 
 	switch(tf->irq) {
 		// TODO: 填好中断处理程序的调用
-
-
+		case -1:
+			break;
+		case 0xd:
+			GProtectFaultHandle(tf);
+			break;
+		case 0x21:
+			KeyboardHandle(tf);
+			break;
+		case 0x80:
+			syscallHandle(tf);
+			break;
 		default:assert(0);
 	}
 }
@@ -66,8 +75,19 @@ void KeyboardHandle(struct TrapFrame *tf){
 		}
 	}else if(code < 0x81){ 
 		// TODO: 处理正常的字符
-		
-
+		keyBuffer[bufferTail++]=code;
+		displayCol++;
+		if(displayCol >= 80) {
+			displayCol = 0;
+			displayRow++;
+			if(displayRow == 25) {
+				scrollScreen();
+				displayRow = 24;
+			}
+		}
+		uint16_t data = code | (0x0c << 8);
+		int pos = (80*displayRow+displayCol)*2;
+		asm volatile("movw %0, (%1)"::"r"(data),"r"(pos+0xb8000));
 	}
 	updateCursor(displayRow, displayCol);
 	
