@@ -126,7 +126,18 @@ void syscallPrint(struct TrapFrame *tf) {
 	for (i = 0; i < size; i++) {
 		asm volatile("movb %%es:(%1), %0":"=r"(character):"r"(str+i));
 		// TODO: 完成光标的维护和打印到显存
-
+		displayCol++;
+		if(displayCol >= 80) {
+			displayCol = 0;
+			displayRow++;
+			if(displayRow == 25) {
+				scrollScreen();
+				displayRow = 24;
+			}
+		}
+		data = character | (0x0c << 8);
+		pos = (80*displayRow+displayCol)*2;
+		asm volatile("movw %0, (%1)"::"r"(data),"r"(pos+0xb8000));
 
 	}
 	tail=displayCol;
@@ -147,10 +158,18 @@ void syscallRead(struct TrapFrame *tf){
 
 void syscallGetChar(struct TrapFrame *tf){
 	// TODO: 自由实现
-
+	keyBuffer[bufferTail++] = getKeyCode();
 }
 
 void syscallGetStr(struct TrapFrame *tf){
 	// TODO: 自由实现
-
+	int sel =  USEL(SEG_UDATA);
+	char *str = (char*)tf->edx;
+	int size = tf->ebx;
+	int i = 0;
+	int pos = 0;
+	char character = 0;
+	uint16_t data = 0;
+	asm volatile("movw %0, %%es"::"m"(sel));
+	
 }

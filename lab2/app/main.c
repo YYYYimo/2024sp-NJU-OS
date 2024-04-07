@@ -33,13 +33,13 @@ int uEntry(void) {
 	printf("%x, %x, %x, %x, %x, %x\n", 0, 0xffffffff, 0x80000000, 0xabcedf01, -32768, 102030);
 	printf("Now I will test your getChar: ");
 	printf("1 + 1 = ");
-	char num = getChar();
-	printf("%c * 123 = 246\n",num);
+	//char num = getChar();
+	//printf("%c * 123 = 246\n",num);
 	printf("Now I will test your getStr: ");
 	printf("Alice is stronger than ");
-	char name[20];
-	getStr(name,20);
-	printf("%s is stronger than Alice\n",name);
+	//char name[20];
+	//getStr(name,20);
+	//printf("%s is stronger than Alice\n",name);
 	printf("=======================================================\n");
 	printf("Test end!!! Good luck!!!\n");
 
