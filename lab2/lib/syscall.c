@@ -71,7 +71,7 @@ char getChar(){ // 对应SYS_READ STD_IN
 
 void getStr(char *str, int size){ // 对应SYS_READ STD_STR
 	// TODO: 实现getStr函数，方式不限
-
+	
 }
 
 int dec2Str(int decimal, char *buffer, int size, int count);
