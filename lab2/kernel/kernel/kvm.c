@@ -60,14 +60,14 @@ size of user program is not greater than 200*512 bytes, i.e., 100KB
 
 void loadUMain(void) {
 	// TODO: 参照bootloader加载内核的方式，由kernel加载用户程序
-	void* uMainEntry = (void(*)(void))0x200000;
+	uint32_t uMainEntry = 0x200000;
 	unsigned int elf = 0x200000;
 	int i = 0;
 	for (i = 0; i < 200; i++) {
 		readSect((void*)(elf + i*512), 201+i);
 	}
 	ELFHeader *elfHeader = (struct ELFHeader *)elf;	
-	uMainEntry = elfHeader->entry;
+	uMainEntry = (uint32_t)elfHeader->entry;
 	int offset = 0;
 	ProgramHeader *programHeader = (struct ProgramHeader *)(elf + elfHeader->phoff);
 	offset = programHeader->off;

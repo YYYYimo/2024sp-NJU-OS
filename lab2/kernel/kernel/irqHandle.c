@@ -163,13 +163,6 @@ void syscallGetChar(struct TrapFrame *tf){
 
 void syscallGetStr(struct TrapFrame *tf){
 	// TODO: 自由实现
-	int sel =  USEL(SEG_UDATA);
-	char *str = (char*)tf->edx;
-	int size = tf->ebx;
-	int i = 0;
-	int pos = 0;
-	char character = 0;
-	uint16_t data = 0;
-	asm volatile("movw %0, %%es"::"m"(sel));
+	
 	
 }
