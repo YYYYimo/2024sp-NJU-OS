@@ -196,7 +196,9 @@ void syscallRead(struct TrapFrame *tf)
 void syscallGetChar(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	keyBuffer[bufferTail++] = getKeyCode();
+	uint32_t code = getKeyCode();
+	char c = getChar(code);
+	asm volatile("movl %0, %%eax" ::"m"(c));
 }
 
 void syscallGetStr(struct TrapFrame *tf)
