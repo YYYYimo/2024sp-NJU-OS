@@ -198,10 +198,25 @@ void syscallGetChar(struct TrapFrame *tf)
 	// TODO: 自由实现
 	uint32_t code = getKeyCode();
 	char c = getChar(code);
-	asm volatile("movl %0, %%eax" ::"m"(c));
+	tf->eax = c;
 }
 
 void syscallGetStr(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
+	char *str = (char*)malloc(tf->ebx);
+	for(int i = 0; i < tf->ebx; i++)
+	{
+		uint32_t code = getKeyCode();
+		char c = getChar(code);
+		str[i] = c;
+	}
+	int sel = USEL(SEG_UDATA);
+	asm volatile("movw %0, %%es" ::"m"(sel));
+
+	char *dest = (char *)tf->edx;
+	for(int i = 0; i < tf->ebx; i++)
+	{
+		asm volatile("movb %0, %%es:(%1)" ::"r"(str[i]), "r"(dest + i));
+	}
 }
