@@ -204,7 +204,7 @@ void syscallGetChar(struct TrapFrame *tf)
 void syscallGetStr(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	char *str = (char*)malloc(tf->ebx);
+	char str[MAX_KEYBUFFER_SIZE];
 	for(int i = 0; i < tf->ebx; i++)
 	{
 		uint32_t code = getKeyCode();

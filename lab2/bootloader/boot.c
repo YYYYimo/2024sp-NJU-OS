@@ -18,9 +18,9 @@ void bootMain(void) {
 	// TODO: 阅读boot.h查看elf相关信息，填写kMainEntry、phoff、offset
 	ELFHeader *elfHeader = (struct ELFHeader *)elf;
 	kMainEntry = (void(*)(void))elfHeader->entry;
-	phoff = elfHeader->phoff;
-	ProgramHeader *programHeader = (struct ProgramHeader *)(elf + phoff);
-	offset = programHeader->off;
+	//phoff = elfHeader->phoff;
+	//ProgramHeader *programHeader = (struct ProgramHeader *)(elf + phoff);
+	//offset = programHeader->off;
 
 	for (i = 0; i < 200 * 512; i++) {
 			*(unsigned char *)(elf + i) = *(unsigned char *)(elf + i + offset);
