@@ -86,7 +86,7 @@ void KeyboardHandle(struct TrapFrame *tf)
 	else if (code < 0x81)
 	{
 		// TODO: 处理正常的字符
-		keyBuffer[bufferTail++] = code;
+		keyBuffer[bufferTail++] = getChar(code);
 		displayCol++;
 		if (displayCol >= 80)
 		{
@@ -98,7 +98,7 @@ void KeyboardHandle(struct TrapFrame *tf)
 				displayRow = 24;
 			}
 		}
-		uint16_t data = code | (0x0c << 8);
+		uint16_t data = getChar(code) | (0x0c << 8);
 		int pos = (80 * displayRow + displayCol) * 2;
 		asm volatile("movw %0, (%1)" ::"r"(data), "r"(pos + 0xb8000));
 	}
@@ -196,15 +196,16 @@ void syscallRead(struct TrapFrame *tf)
 void syscallGetChar(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	uint32_t code;
 	char c;
 	enableInterrupt();
-	do 
+	while(bufferHead == bufferTail)
 	{
-		code = getKeyCode();
-		c = getChar(code);
-	} while(c != '/n');
+		waitForInterrupt();
+		putChar('S');
+	}
+	c = keyBuffer[bufferHead];
 	disableInterrupt();
+
 	tf->eax = c;
 }
 
@@ -213,11 +214,9 @@ void syscallGetStr(struct TrapFrame *tf)
 	// TODO: 自由实现
 	char str[MAX_KEYBUFFER_SIZE];
 	enableInterrupt();
-	for(int i = 0; i < tf->ebx; i++)
+	while(keyBuffer[bufferTail] != '\n')
 	{
-		uint32_t code = getKeyCode();
-		char c = getChar(code);
-		str[i] = c;
+		waitForInterrupt();
 	}
 	disableInterrupt();
 	int sel = USEL(SEG_UDATA);
