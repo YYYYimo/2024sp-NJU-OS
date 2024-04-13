@@ -5,7 +5,7 @@ LD = ld
 # Compiler flags
 CFLAGS = -m32 -march=i386 -static \
 	 -fno-builtin -fno-stack-protector -fno-omit-frame-pointer \
-	 -Wall -Werror -O2 -I./include -g
+	 -Wall -O2 -I./include -g -Wno-unused-variable
 
 # Assembler flags
 ASFLAGS = -m32

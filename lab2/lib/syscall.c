@@ -99,18 +99,21 @@ void printf(const char *format, ...)
 		{
 		case 0:
 			if (format[i] == '%')
+			{
 				state = 1;
+				i++;
+			}
 			else
 			{
 				buffer[count] = format[i];
 				count++;
+				i++;
 				if (count == MAX_BUFFER_SIZE)
 				{
 					syscall(SYS_WRITE, STD_OUT, (uint32_t)buffer, (uint32_t)MAX_BUFFER_SIZE, 0, 0);
 					count = 0;
 				}
 			}
-			i++;
 			break;
 		case 1:
 			switch (format[i])
@@ -126,12 +129,12 @@ void printf(const char *format, ...)
 					state = 0;
 					break;
 				case 's':
-					string = va_arg(paraList, char *);
+					string = va_arg(paraList, *(char **));
 					count = str2Str(string, buffer, MAX_BUFFER_SIZE, count);
 					state = 0;
 					break;
 				case 'c':
-					character = va_arg(paraList, char);
+					character = va_arg(paraList, int);
 					buffer[count] = character;
 					count++;
 					if (count == MAX_BUFFER_SIZE)
@@ -144,10 +147,7 @@ void printf(const char *format, ...)
 			}
 			i++;
 			break;
-		case 2:
-			//add error detection
-			break;
-		default:
+		default:	
 			break;
 		}
 	}
