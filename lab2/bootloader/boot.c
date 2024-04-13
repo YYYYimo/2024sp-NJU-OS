@@ -10,7 +10,6 @@ void bootMain(void) {
 	unsigned int elf = 0x100000; // physical memory addr to load
 	void (*kMainEntry)(void);
 	kMainEntry = (void(*)(void))0x100000; // entry address of the program
-
 	for (i = 0; i < 200; i++) {
 		readSect((void*)(elf + i*512), 1+i);
 	}
@@ -18,9 +17,9 @@ void bootMain(void) {
 	// TODO: 阅读boot.h查看elf相关信息，填写kMainEntry、phoff、offset
 	ELFHeader *elfHeader = (struct ELFHeader *)elf;
 	kMainEntry = (void(*)(void))elfHeader->entry;
-	//phoff = elfHeader->phoff;
-	//ProgramHeader *programHeader = (struct ProgramHeader *)(elf + phoff);
-	//offset = programHeader->off;
+	phoff = elfHeader->phoff;
+	ProgramHeader *programHeader = (struct ProgramHeader *)(elf + phoff);
+	offset = programHeader->off;
 
 	for (i = 0; i < 200 * 512; i++) {
 			*(unsigned char *)(elf + i) = *(unsigned char *)(elf + i + offset);

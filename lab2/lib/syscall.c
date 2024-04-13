@@ -110,6 +110,7 @@ void printf(const char *format, ...)
 					count = 0;
 				}
 			}
+			i++;
 			break;
 		case 1:
 			switch (format[i])
@@ -141,6 +142,7 @@ void printf(const char *format, ...)
 					state = 0;
 					break;
 			}
+			i++;
 			break;
 		case 2:
 			//add error detection

@@ -5,7 +5,6 @@
 void kEntry(void) {
 	// Interruption is disabled in bootloader
 	initSerial();// initialize serial port
-	
 	// TODO: 做一系列初始化
 	// initialize idt
 	initIdt();
@@ -23,5 +22,5 @@ void kEntry(void) {
 	loadUMain(); // load user program, enter user space
 
 	while(1);
-	assert(0);
+
 }

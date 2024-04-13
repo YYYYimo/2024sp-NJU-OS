@@ -12,7 +12,7 @@ static void setIntr(struct GateDescriptor *ptr, uint32_t selector, uint32_t offs
 	// TODO: 初始化interrupt gate
 	ptr->offset_15_0 = offset & 0xffff;
 	ptr->offset_31_16 = (offset >> 16) & 0xffff;
-	ptr->segment = selector;
+	ptr->segment = selector << 3;
 	ptr->pad0 = 0;
 	ptr->present = 1;
 	ptr->system = 0;
@@ -25,7 +25,7 @@ static void setTrap(struct GateDescriptor *ptr, uint32_t selector, uint32_t offs
 	// TODO: 初始化trap gate
 	ptr->offset_15_0 = offset & 0xffff;
 	ptr->offset_31_16 = (offset >> 16) & 0xffff;
-	ptr->segment = selector;
+	ptr->segment = selector << 3;
 	ptr->pad0 = 0;
 	ptr->present = 1;
 	ptr->system = 0;
