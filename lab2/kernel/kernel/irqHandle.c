@@ -196,8 +196,15 @@ void syscallRead(struct TrapFrame *tf)
 void syscallGetChar(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	uint32_t code = getKeyCode();
-	char c = getChar(code);
+	uint32_t code;
+	char c;
+	enableInterrupt();
+	do 
+	{
+		code = getKeyCode();
+		c = getChar(code);
+	} while(c != '/n');
+	disableInterrupt();
 	tf->eax = c;
 }
 
@@ -205,12 +212,14 @@ void syscallGetStr(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
 	char str[MAX_KEYBUFFER_SIZE];
+	enableInterrupt();
 	for(int i = 0; i < tf->ebx; i++)
 	{
 		uint32_t code = getKeyCode();
 		char c = getChar(code);
 		str[i] = c;
 	}
+	disableInterrupt();
 	int sel = USEL(SEG_UDATA);
 	asm volatile("movw %0, %%es" ::"m"(sel));
 
