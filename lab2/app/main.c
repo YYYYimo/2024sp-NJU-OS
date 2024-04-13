@@ -11,7 +11,7 @@ int uEntry(void) {
 	asm volatile("movw %%ax, %%ds"::"a"(selector));
 	
 	
-	/*printf("I/O test begin...\n");
+	printf("I/O test begin...\n");
 	printf("the answer should be:\n");
 	printf("#######################################################\n");
 	printf("Hello, welcome to OSlab! I'm the body of the game.\n");
@@ -23,7 +23,7 @@ int uEntry(void) {
 	printf("Alice is stronger than Bob\nBob is weaker than Alice\n");
 	printf("#######################################################\n");
 	printf("your answer:\n");
-	printf("=======================================================\n");*/
+	printf("=======================================================\n");
 	printf("%s %s%scome %co%s", "Hello,", "", "wel", 't', " ");
 	printf("%c%c%c%c%c! ", 'O', 'S', 'l', 'a', 'b');
 	printf("I'm the %s of %s.\n", "body", "the game");
@@ -33,13 +33,13 @@ int uEntry(void) {
 	printf("%x, %x, %x, %x, %x, %x\n", 0, 0xffffffff, 0x80000000, 0xabcedf01, -32768, 102030);
 	printf("Now I will test your getChar: ");
 	printf("1 + 1 = ");
-	//char num = getChar();
-	//printf("%c * 123 = 246\n",num);
+	char num = getChar();
+	printf("%c * 123 = 246\n",num);
 	printf("Now I will test your getStr: ");
 	printf("Alice is stronger than ");
-	//char name[20];
-	//getStr(name,20);
-	//printf("%s is stronger than Alice\n",name);
+	char name[20];
+	getStr(name,20);
+	printf("%s is stronger than Alice\n",name);
 	printf("=======================================================\n");
 	printf("Test end!!! Good luck!!!\n");
 	

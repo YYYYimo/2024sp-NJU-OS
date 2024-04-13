@@ -86,12 +86,13 @@ void printf(const char *format, ...)
 	char buffer[MAX_BUFFER_SIZE];
 	int count = 0;					  // buffer index
 	//int index = 0;					  // parameter index
-	void *paraList = (void *)&format; // address of format in stack
+	char *paraList = (char *)&format; // address of format in stack
 	int state = 0;					  // 0: legal character; 1: '%'; 2: illegal format
 	int decimal = 0;
 	uint32_t hexadecimal = 0;
 	char *string = 0;
 	char character = 0;
+	paraList += 4;
 	while (format[i] != 0)
 	{
 		// TODO: support format %d %x %s %c
@@ -129,12 +130,12 @@ void printf(const char *format, ...)
 					state = 0;
 					break;
 				case 's':
-					string = va_arg(paraList, *(char **));
+					string = va_arg(paraList, char *);
 					count = str2Str(string, buffer, MAX_BUFFER_SIZE, count);
 					state = 0;
 					break;
 				case 'c':
-					character = va_arg(paraList, int);
+					character = va_arg(paraList, char);
 					buffer[count] = character;
 					count++;
 					if (count == MAX_BUFFER_SIZE)
