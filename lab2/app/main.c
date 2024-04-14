@@ -34,6 +34,7 @@ int uEntry(void) {
 	printf("Now I will test your getChar: ");
 	printf("1 + 1 = ");
 	char num = getChar();
+	printf("\n");
 	printf("%c * 123 = 246\n",num);
 	printf("Now I will test your getStr: ");
 	printf("Alice is stronger than ");

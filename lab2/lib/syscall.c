@@ -73,7 +73,7 @@ char getChar()
 void getStr(char *str, int size)
 {	// 对应SYS_READ STD_STR
 	// TODO: 实现getStr函数，方式不限
-	syscall(SYS_READ, STD_IN, (uint32_t)str, size, 0, 0);
+	syscall(SYS_READ, STD_STR, (uint32_t)str, size, 0, 0);
 }
 
 int dec2Str(int decimal, char *buffer, int size, int count);

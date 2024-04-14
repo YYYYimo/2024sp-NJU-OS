@@ -197,14 +197,18 @@ void syscallGetChar(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
 	char c;
+	int i = 60;
+	bufferHead = bufferTail;
 	enableInterrupt();
 	while(bufferHead == bufferTail)
 	{
 		waitForInterrupt();
-		putChar('S');
+		putNum(bufferHead);
+		putNum(bufferTail);
 	}
-	c = keyBuffer[bufferHead];
 	disableInterrupt();
+	c = keyBuffer[bufferHead];
+	bufferTail++;
 
 	tf->eax = c;
 }
@@ -212,19 +216,28 @@ void syscallGetChar(struct TrapFrame *tf)
 void syscallGetStr(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	char str[MAX_KEYBUFFER_SIZE];
+	bufferHead = bufferTail;
 	enableInterrupt();
-	while(keyBuffer[bufferTail] != '\n')
+	while(keyBuffer[bufferTail - 1] != '\n')
 	{
 		waitForInterrupt();
+		putChar('S');
 	}
 	disableInterrupt();
 	int sel = USEL(SEG_UDATA);
 	asm volatile("movw %0, %%es" ::"m"(sel));
 
 	char *dest = (char *)tf->edx;
-	for(int i = 0; i < tf->ebx; i++)
+	char c;
+	int i = 0;
+	while(bufferHead != bufferTail)
 	{
-		asm volatile("movb %0, %%es:(%1)" ::"r"(str[i]), "r"(dest + i));
+		c = keyBuffer[bufferHead];
+		if(c != '\n')
+		{
+			asm volatile("movb %0, %%es:(%1)" ::"r"(c), "r"(dest + i));
+			i++;
+		}
+		bufferHead++;
 	}
 }
