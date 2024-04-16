@@ -92,7 +92,7 @@ void printf(const char *format, ...)
 	uint32_t hexadecimal = 0;
 	char *string = 0;
 	char character = 0;
-	paraList += 4;
+	paraList += sizeof(char *);
 	while (format[i] != 0)
 	{
 		// TODO: support format %d %x %s %c

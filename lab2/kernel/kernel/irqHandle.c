@@ -224,8 +224,8 @@ void syscallGetStr(struct TrapFrame *tf)
 		putChar('S');
 	}
 	disableInterrupt();
-	int sel = USEL(SEG_UDATA);
-	asm volatile("movw %0, %%es" ::"m"(sel));
+	//int sel = USEL(SEG_UDATA);
+	//asm volatile("movw %0, %%es" ::"m"(sel));
 
 	char *dest = (char *)tf->edx;
 	char c;
