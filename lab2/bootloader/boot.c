@@ -1,6 +1,7 @@
 #include "boot.h"
 
 #define SECTSIZE 512
+#define PT_LOAD 1
 
 
 void bootMain(void) {
@@ -13,14 +14,27 @@ void bootMain(void) {
 	for (i = 0; i < 200; i++) {
 		readSect((void*)(elf + i*512), 1+i);
 	}
-
 	// TODO: 阅读boot.h查看elf相关信息，填写kMainEntry、phoff、offset
 	ELFHeader *elfHeader = (struct ELFHeader *)elf;
 	kMainEntry = (void(*)(void))elfHeader->entry;
 	phoff = elfHeader->phoff;
-	ProgramHeader *programHeader = (struct ProgramHeader *)(elf + phoff);
-	offset = programHeader->off;
-
+	ProgramHeader* ph = elf + phoff;
+	ProgramHeader* eph = ph + elfHeader->phnum;
+	while(ph->type != PT_LOAD)
+	{
+		ph++;
+	}
+	offset = ph->off;
+	/*
+	for( ; ph < eph; ph++)
+	{
+		if(ph->type == 1)
+		{
+			offset = ph->off;
+			ph = eph;
+		}
+	}
+	*/
 	for (i = 0; i < 200 * 512; i++) {
 			*(unsigned char *)(elf + i) = *(unsigned char *)(elf + i + offset);
 		}
