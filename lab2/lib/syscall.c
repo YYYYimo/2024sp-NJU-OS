@@ -135,9 +135,7 @@ void printf(const char *format, ...)
 					state = 0;
 					break;
 				case 'c':
-					//character = va_arg(paraList, char);
-					character = *(char**)paraList;
-					paraList += 2;
+					character = va_arg(paraList, char);
 					buffer[count] = character;
 					count++;
 					if (count == MAX_BUFFER_SIZE)

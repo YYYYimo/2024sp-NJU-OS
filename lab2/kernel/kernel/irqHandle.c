@@ -86,21 +86,25 @@ void KeyboardHandle(struct TrapFrame *tf)
 	else if (code < 0x81)
 	{
 		// TODO: 处理正常的字符
-		keyBuffer[bufferTail++] = getChar(code);
-		displayCol++;
-		if (displayCol >= 80)
+		if (code != 0x1 && code != 0xe && code != 0xf && code != 0x1c && code != 0x1d && code != 0x2a &&
+			code != 0x36 && code != 0x38 && code != 0x3a)
 		{
-			displayCol = 0;
-			displayRow++;
-			if (displayRow == 25)
+			keyBuffer[bufferTail++] = getChar(code);
+			displayCol++;
+			if (displayCol >= 80)
 			{
-				scrollScreen();
-				displayRow = 24;
+				displayCol = 0;
+				displayRow++;
+				if (displayRow == 25)
+				{
+					scrollScreen();
+					displayRow = 24;
+				}
 			}
+			uint16_t data = getChar(code) | (0x0c << 8);
+			int pos = (80 * displayRow + displayCol) * 2;
+			asm volatile("movw %0, (%1)" ::"r"(data), "r"(pos + 0xb8000));
 		}
-		uint16_t data = getChar(code) | (0x0c << 8);
-		int pos = (80 * displayRow + displayCol) * 2;
-		asm volatile("movw %0, (%1)" ::"r"(data), "r"(pos + 0xb8000));
 	}
 	updateCursor(displayRow, displayCol);
 }
@@ -197,7 +201,7 @@ void syscallGetChar(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
 	char c;
-	int i = 60;
+	
 	bufferHead = bufferTail;
 	enableInterrupt();
 	while(bufferHead == bufferTail)
@@ -209,14 +213,20 @@ void syscallGetChar(struct TrapFrame *tf)
 	disableInterrupt();
 	c = keyBuffer[bufferHead];
 	bufferTail++;
-
+	/*
+	uint32_t code = 0;
+	code = getKeyCode();
+	while(!code)
+		code = getKeyCode();
+	c = getChar(code);
+	*/
 	tf->eax = c;
 }
 
 void syscallGetStr(struct TrapFrame *tf)
 {
 	// TODO: 自由实现
-	bufferHead = bufferTail;
+	bufferHead = (bufferTail = 0);
 	enableInterrupt();
 	while(keyBuffer[bufferTail - 1] != '\n')
 	{
