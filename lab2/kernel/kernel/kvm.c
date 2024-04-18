@@ -1,6 +1,6 @@
 #include "x86.h"
 #include "device.h"
-
+#define PT_LOAD 1
 SegDesc gdt[NR_SEGMENTS];       // the new GDT, NR_SEGMENTS=7, defined in x86/memory.h
 TSS tss;
 
@@ -66,11 +66,15 @@ void loadUMain(void) {
 	for (i = 0; i < 200; i++) {
 		readSect((void*)(elf + i*512), 201+i);
 	}
-	ELFHeader *elfHeader = (struct ELFHeader *)elf;	
-	uMainEntry = (uint32_t)elfHeader->entry;
-	int offset = 0;
-	ProgramHeader *programHeader = (struct ProgramHeader *)(elf + elfHeader->phoff);
-	offset = programHeader->off;
+	ELFHeader *elfHeader = (struct ELFHeader *)elf;
+	uMainEntry = (void(*)(void))elfHeader->entry;
+	ProgramHeader* ph = elf + elfHeader->phoff;
+	ProgramHeader* eph = ph + elfHeader->phnum;
+	while(ph->type != PT_LOAD)
+	{
+		ph++;
+	}
+	int offset = ph->off;
 	for(i = 0; i < 200 * 512; i++) {
 		*(unsigned char *)(elf + i) = *(unsigned char *)(elf + i + offset);
 	}
