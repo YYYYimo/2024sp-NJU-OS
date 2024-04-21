@@ -202,7 +202,7 @@ void syscallGetChar(struct TrapFrame *tf)
 	// TODO: 自由实现
 	char c;
 	
-	bufferHead = bufferTail;
+	bufferHead = (bufferTail = 0);
 	enableInterrupt();
 	while(bufferHead == bufferTail)
 	{
@@ -213,13 +213,6 @@ void syscallGetChar(struct TrapFrame *tf)
 	disableInterrupt();
 	c = keyBuffer[bufferHead];
 	bufferTail++;
-	/*
-	uint32_t code = 0;
-	code = getKeyCode();
-	while(!code)
-		code = getKeyCode();
-	c = getChar(code);
-	*/
 	tf->eax = c;
 }
 
@@ -238,16 +231,14 @@ void syscallGetStr(struct TrapFrame *tf)
 	asm volatile("movw %0, %%es" ::"m"(sel));
 
 	char *dest = (char *)tf->edx;
+	int size = tf->ebx;
 	char c;
 	int i = 0;
-	while(bufferHead != bufferTail)
+	while(bufferHead != bufferTail - 1 && i < size - 1)
 	{
-		c = keyBuffer[bufferHead];
-		if(c != '\n')
-		{
-			asm volatile("movb %0, %%es:(%1)" ::"r"(c), "r"(dest + i));
-			i++;
-		}
-		bufferHead++;
+		c = keyBuffer[bufferHead++];
+		asm volatile("movb %0, %%es:(%1)" ::"r"(c), "r"(dest + i));
+		i++;
 	}
+	asm volatile("movb %0, %%es:(%1)" ::"r"('\0'), "r"(dest + i));
 }
