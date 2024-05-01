@@ -1,5 +1,6 @@
 #include "x86.h"
 #include "device.h"
+#include "common.h"
 
 extern TSS tss;
 extern ProcessTable pcb[MAX_PCB_NUM];
@@ -53,6 +54,52 @@ void GProtectFaultHandle(struct StackFrame *sf)
 void timerHandle(struct StackFrame *sf)
 {
 	// TODO
+	for(int i = 0; i < MAX_PCB_NUM; i++)
+	{
+		if(pcb[i].state == STATE_BLOCKED)
+		{
+			pcb[i].sleepTime--;
+			if(pcb[i].sleepTime == 0)
+			{
+				pcb[i].state = STATE_RUNNABLE;
+			}
+		}
+	}
+	pcb[current].timeCount++;
+	if(pcb[current].timeCount == MAX_TIME_COUNT)
+	{
+		int next = -1;
+		for(int i = 0; i < MAX_PCB_NUM; ++i)
+		{
+			if(i != current && pcb[i].state == STATE_RUNNABLE)
+			{
+				next = i;
+				break;
+			}
+		}
+		if (next != -1)
+		{
+			pcb[current].state = STATE_RUNNABLE;
+			pcb[current].timeCount = 0;
+			pcb[next].state = STATE_RUNNING;
+			pcb[next].timeCount = 0;
+			current = next;
+
+			// switch process
+			uint32_t tmpStackTop = pcb[current].stackTop;
+			pcb[current].stackTop = pcb[current].prevStackTop;
+			tss.esp0 = (uint32_t) & (pcb[current].stackTop);
+			asm volatile("movl %0,%%esp" ::"m"(tmpStackTop));
+			asm volatile("popl %gs");
+			asm volatile("popl %fs");
+			asm volatile("popl %es");
+			asm volatile("popl %ds");
+			asm volatile("popal");
+			asm volatile("addl $8,%esp");
+			asm volatile("iret");
+		}
+	}
+	
 }
 
 void syscallHandle(struct StackFrame *sf)
@@ -63,6 +110,15 @@ void syscallHandle(struct StackFrame *sf)
 		syscallWrite(sf);
 		break; // for SYS_WRITE
 	/*TODO Add Fork,Sleep... */
+	case 1:
+		syscallExit(sf);
+		break;
+	case 3:
+		syscallFork(sf);
+		break;
+	case 4:
+		syscallSleep(sf);
+		break;
 	default:
 		break;
 	}
@@ -132,3 +188,65 @@ void syscallPrint(struct StackFrame *sf)
 }
 
 // TODO syscallFork ...
+void syscallFork(struct StackFrame *sf)
+{
+	// TODO
+	int idx = -1;
+	int i;
+	for(i = 1; i < MAX_PCB_NUM; ++i)
+	{
+		if(pcb[i].state == STATE_DEAD)
+		{
+			idx = i;
+			break;
+		}
+	}
+	if(idx == -1)
+	{
+		sf->eax = -1;
+		return;
+	}
+	for(i = 0; i < MAX_STACK_SIZE; ++i)
+	{
+		pcb[idx].stack[i] = pcb[current].stack[i];
+	}
+	pcb[idx].regs = pcb[current].regs;
+	pcb[idx].regs.eax = 0; //子进程的返回值为0
+	pcb[idx].stackTop = pcb[current].stackTop;
+	pcb[idx].prevStackTop = pcb[current].prevStackTop;
+	pcb[idx].state = pcb[current].state;
+	pcb[idx].timeCount = pcb[current].timeCount;
+	pcb[idx].sleepTime = pcb[current].sleepTime;
+	pcb[idx].pid = idx;
+	for(i = 0; i < 32; ++i)
+	{
+		pcb[idx].name[i] = pcb[current].name[i];
+	}
+	//将父进程的地址空间、用户态 堆栈完全拷贝至子进程的内存中
+	char* src = (current + 1) * 100000;
+	char* dst = (idx + 1) * 100000;
+	for(i = 0; i < 100000; ++i)
+	{
+		dst[i] = src[i];
+	}
+	sf->eax = idx;
+}
+
+void syscallSleep(struct StackFrame *sf)
+{
+	// TODO
+	if(sf->ecx <= 0)
+	{
+		return;
+	}
+	pcb[current].state = STATE_BLOCKED;
+	pcb[current].sleepTime = sf->ecx;
+	asm volatile("int $0x20");
+}
+
+void syscallExit(struct StackFrame *sf)
+{
+	// TODO
+	pcb[current].state = STATE_DEAD;
+	asm volatile("int $0x20");
+}
