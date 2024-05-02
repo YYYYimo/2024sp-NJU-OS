@@ -10,11 +10,14 @@ extern int displayRow;
 extern int displayCol;
 
 void GProtectFaultHandle(struct StackFrame *sf);
-
+void timerHandle(struct StackFrame *sf);
 void syscallHandle(struct StackFrame *sf);
 
 void syscallWrite(struct StackFrame *sf);
 void syscallPrint(struct StackFrame *sf);
+void syscallFork(struct StackFrame *sf);
+void syscallSleep(struct StackFrame *sf);
+void syscallExit(struct StackFrame *sf);
 
 void irqHandle(struct StackFrame *sf)
 { // pointer sf = esp
@@ -231,8 +234,8 @@ void syscallFork(struct StackFrame *sf)
 		pcb[idx].name[i] = pcb[current].name[i];
 	}
 
-	char* src = (current + 1) * 0x100000;
-	char* dst = (idx + 1) * 0x100000;
+	char* src = (char *)((current + 1) * 0x100000);
+	char* dst = (char *)((idx + 1) * 0x100000);
 	for(i = 0; i < 0x100000; ++i)
 	{
 		dst[i] = src[i];
