@@ -71,7 +71,7 @@ void timerHandle(struct StackFrame *sf)
 		int next = -1;
 		for(int i = 0; i < MAX_PCB_NUM; ++i)
 		{
-			if(i != current && pcb[i].state == STATE_RUNNABLE)
+			if(pcb[i].state == STATE_RUNNABLE)
 			{
 				next = i;
 				break;
@@ -82,7 +82,7 @@ void timerHandle(struct StackFrame *sf)
 			pcb[current].state = STATE_RUNNABLE;
 			pcb[current].timeCount = 0;
 			pcb[next].state = STATE_RUNNING;
-			pcb[next].timeCount = 0;
+			pcb[next].timeCount = MAX_TIME_COUNT;
 			current = next;
 
 			// switch process
@@ -210,11 +210,19 @@ void syscallFork(struct StackFrame *sf)
 	{
 		pcb[idx].stack[i] = pcb[current].stack[i];
 	}
-	pcb[idx].regs = pcb[current].regs;
+	pcb[idx].regs.ss = USEL(2 + idx * 2);
+	pcb[idx].regs.esp = pcb[current].regs.esp;
+	pcb[idx].regs.eflags = pcb[current].regs.eflags;
+	pcb[idx].regs.cs = USEL(1 + idx * 2);
+	pcb[idx].regs.eip = pcb[current].regs.eip;
+	pcb[idx].regs.ds = USEL(2 + idx * 2);
+	pcb[idx].regs.es = USEL(2 + idx * 2);
+	pcb[idx].regs.fs = USEL(2 + idx * 2);
+	pcb[idx].regs.gs = USEL(2 + idx * 2);
 	pcb[idx].regs.eax = 0; //子进程的返回值为0
-	pcb[idx].stackTop = pcb[current].stackTop;
-	pcb[idx].prevStackTop = pcb[current].prevStackTop;
-	pcb[idx].state = pcb[current].state;
+	pcb[idx].stackTop = (uint32_t)&(pcb[idx].regs);
+	pcb[idx].prevStackTop = (uint32_t)&(pcb[idx].stackTop);
+	pcb[idx].state = STATE_RUNNABLE;
 	pcb[idx].timeCount = pcb[current].timeCount;
 	pcb[idx].sleepTime = pcb[current].sleepTime;
 	pcb[idx].pid = idx;
@@ -222,10 +230,10 @@ void syscallFork(struct StackFrame *sf)
 	{
 		pcb[idx].name[i] = pcb[current].name[i];
 	}
-	//将父进程的地址空间、用户态 堆栈完全拷贝至子进程的内存中
-	char* src = (current + 1) * 100000;
-	char* dst = (idx + 1) * 100000;
-	for(i = 0; i < 100000; ++i)
+
+	char* src = (current + 1) * 0x100000;
+	char* dst = (idx + 1) * 0x100000;
+	for(i = 0; i < 0x100000; ++i)
 	{
 		dst[i] = src[i];
 	}

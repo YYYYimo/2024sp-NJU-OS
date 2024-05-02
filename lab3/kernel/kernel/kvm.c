@@ -69,13 +69,13 @@ void initProc() {
 	pcb[1].timeCount = 0;
 	pcb[1].sleepTime = 0;
 	pcb[1].pid = 1;
-	pcb[1].regs.ss = USEL(4);
-	pcb[1].regs.esp = 0x100000;
+	pcb[1].regs.ss = USEL(4); //第一个用户程序的数据段
+	pcb[1].regs.esp = 0x100000; //相对于用户程序其实地址的偏移
 	asm volatile("pushfl");
 	asm volatile("popl %0":"=r"(pcb[1].regs.eflags));
 	pcb[1].regs.eflags = pcb[1].regs.eflags | 0x200;
-	pcb[1].regs.cs = USEL(3);
-	pcb[1].regs.eip = loadUMain();
+	pcb[1].regs.cs = USEL(3); //第一个用户程序的代码段
+	pcb[1].regs.eip = loadUMain(); //第一个用户程序的入口地址
 	pcb[1].regs.ds = USEL(4);
 	pcb[1].regs.es = USEL(4);
 	pcb[1].regs.fs = USEL(4);
