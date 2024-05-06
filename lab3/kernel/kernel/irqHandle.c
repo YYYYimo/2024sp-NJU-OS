@@ -57,24 +57,28 @@ void GProtectFaultHandle(struct StackFrame *sf)
 void timerHandle(struct StackFrame *sf)
 {
 	// TODO
-	for(int i = 0; i < MAX_PCB_NUM; i++)
+	for (int i = 0; i < MAX_PCB_NUM; i++)
 	{
-		if(pcb[i].state == STATE_BLOCKED)
+		if (pcb[i].state == STATE_BLOCKED)
 		{
 			pcb[i].sleepTime--;
-			if(pcb[i].sleepTime == 0)
+			if (pcb[i].sleepTime == 0)
 			{
 				pcb[i].state = STATE_RUNNABLE;
 			}
 		}
 	}
 	pcb[current].timeCount++;
-	if(pcb[current].timeCount == MAX_TIME_COUNT)
+	if (pcb[current].timeCount >= MAX_TIME_COUNT || 
+		pcb[current].state == STATE_BLOCKED || 
+		pcb[current].state == STATE_DEAD)
 	{
 		int next = -1;
-		for(int i = 0; i < MAX_PCB_NUM; ++i)
+		for (int i = (current + 1) % MAX_PCB_NUM; i != current; i = (i + 1) % MAX_PCB_NUM)
 		{
-			if(pcb[i].state == STATE_RUNNABLE)
+			if (i == 0)
+				continue;
+			if (pcb[i].state == STATE_RUNNABLE)
 			{
 				next = i;
 				break;
@@ -85,12 +89,17 @@ void timerHandle(struct StackFrame *sf)
 			pcb[current].state = STATE_RUNNABLE;
 			pcb[current].timeCount = 0;
 			pcb[next].state = STATE_RUNNING;
-			pcb[next].timeCount = MAX_TIME_COUNT;
-			current = next;
 
 			// switch process
+			putStr("change pcb from ");
+			putNum(current);
+			putStr(" to ");
+			putNum(next);
+			putChar('\n');
+
+			current = next;
 			uint32_t tmpStackTop = pcb[current].stackTop;
-			pcb[current].stackTop = pcb[current].prevStackTop;
+			// pcb[current].stackTop = pcb[current].prevStackTop;
 			tss.esp0 = (uint32_t) & (pcb[current].stackTop);
 			asm volatile("movl %0,%%esp" ::"m"(tmpStackTop));
 			asm volatile("popl %gs");
@@ -102,7 +111,6 @@ void timerHandle(struct StackFrame *sf)
 			asm volatile("iret");
 		}
 	}
-	
 }
 
 void syscallHandle(struct StackFrame *sf)
@@ -114,13 +122,13 @@ void syscallHandle(struct StackFrame *sf)
 		break; // for SYS_WRITE
 	/*TODO Add Fork,Sleep... */
 	case 1:
-		syscallExit(sf);
-		break;
-	case 3:
 		syscallFork(sf);
 		break;
-	case 4:
+	case 3:
 		syscallSleep(sf);
+		break;
+	case 4:
+		syscallExit(sf);
 		break;
 	default:
 		break;
@@ -196,23 +204,32 @@ void syscallFork(struct StackFrame *sf)
 	// TODO
 	int idx = -1;
 	int i;
-	for(i = 1; i < MAX_PCB_NUM; ++i)
+	for (i = 1; i < MAX_PCB_NUM; ++i)
 	{
-		if(pcb[i].state == STATE_DEAD)
+		if (pcb[i].state == STATE_DEAD)
 		{
 			idx = i;
 			break;
 		}
 	}
-	if(idx == -1)
+	if (idx == -1)
 	{
-		sf->eax = -1;
+		pcb[current].regs.eax = -1;
 		return;
 	}
-	for(i = 0; i < MAX_STACK_SIZE; ++i)
+
+	char *src = (char *)((current + 1) * 0x100000);
+	char *dst = (char *)((idx + 1) * 0x100000);
+	for (i = 0; i < 0x100000; ++i)
+	{
+		dst[i] = src[i];
+	}
+	
+	for (i = 0; i < MAX_STACK_SIZE; ++i)
 	{
 		pcb[idx].stack[i] = pcb[current].stack[i];
 	}
+	
 	pcb[idx].regs.ss = USEL(2 + idx * 2);
 	pcb[idx].regs.esp = pcb[current].regs.esp;
 	pcb[idx].regs.eflags = pcb[current].regs.eflags;
@@ -222,42 +239,41 @@ void syscallFork(struct StackFrame *sf)
 	pcb[idx].regs.es = USEL(2 + idx * 2);
 	pcb[idx].regs.fs = USEL(2 + idx * 2);
 	pcb[idx].regs.gs = USEL(2 + idx * 2);
-	pcb[idx].regs.eax = 0; //子进程的返回值为0
-	pcb[idx].stackTop = (uint32_t)&(pcb[idx].regs);
-	pcb[idx].prevStackTop = (uint32_t)&(pcb[idx].stackTop);
+	pcb[idx].regs.eax = 0; // 子进程的返回值为0
+	pcb[idx].stackTop = (uint32_t) & (pcb[idx].regs);
+	pcb[idx].prevStackTop = (uint32_t) & (pcb[idx].stackTop);
 	pcb[idx].state = STATE_RUNNABLE;
 	pcb[idx].timeCount = pcb[current].timeCount;
 	pcb[idx].sleepTime = pcb[current].sleepTime;
 	pcb[idx].pid = idx;
-	for(i = 0; i < 32; ++i)
+	for (i = 0; i < 32; ++i)
 	{
 		pcb[idx].name[i] = pcb[current].name[i];
 	}
-
-	char* src = (char *)((current + 1) * 0x100000);
-	char* dst = (char *)((idx + 1) * 0x100000);
-	for(i = 0; i < 0x100000; ++i)
-	{
-		dst[i] = src[i];
-	}
-	sf->eax = idx;
+	// sf->eax = idx;
+	pcb[current].regs.eax = idx;
 }
 
 void syscallSleep(struct StackFrame *sf)
 {
 	// TODO
-	if(sf->ecx <= 0)
+	putStr("In syscallSleep\n");
+	if (sf->ecx <= 0)
 	{
 		return;
 	}
 	pcb[current].state = STATE_BLOCKED;
 	pcb[current].sleepTime = sf->ecx;
+
 	asm volatile("int $0x20");
 }
 
 void syscallExit(struct StackFrame *sf)
 {
 	// TODO
+	putStr("In syscallExit\n");
 	pcb[current].state = STATE_DEAD;
+	
 	asm volatile("int $0x20");
 }
+
