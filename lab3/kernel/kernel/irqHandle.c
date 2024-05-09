@@ -74,15 +74,13 @@ void timerHandle(struct StackFrame *sf)
 			{
 				pcb[i].state = STATE_RUNNABLE;
 				pcb[i].timeCount = 0;
-				putStr("change blocked to runnable");
+				putStr("change blocked to runnable\n");
 			}
 		}
 	}
 	int next = -1;
 	for (int i = (current + 1) % MAX_PCB_NUM; i != current; i = (i + 1) % MAX_PCB_NUM)
 	{
-		if (i == 0)
-			continue;
 		if (pcb[i].state == STATE_RUNNABLE)
 		{
 			next = i;
@@ -92,17 +90,16 @@ void timerHandle(struct StackFrame *sf)
 			break;
 		}
 	}
-	int change = 0;
 	if(pcb[current].state == STATE_RUNNING)
 	{
 		pcb[current].timeCount++;
-		if(pcb[current].timeCount == MAX_TIME_COUNT)
+		if(pcb[current].timeCount >= MAX_TIME_COUNT)
 		{
 			pcb[current].state = STATE_RUNNABLE;
 			pcb[current].timeCount = 0;
 		}
 	}
-	if ((pcb[current].state == STATE_BLOCKED || pcb[current].state == STATE_DEAD || change || current == 0) && next != -1)
+	if ((pcb[current].state != STATE_RUNNING) && next != -1)
 	{
 		pcb[next].state = STATE_RUNNING;
 		// switch process
@@ -112,11 +109,10 @@ void timerHandle(struct StackFrame *sf)
 		putNum(next);
 		putChar('\n');
 		current = next;
-	
-		
+
 		uint32_t tmpStackTop = pcb[current].stackTop;
-		//pcb[current].stackTop = pcb[current].prevStackTop;
-		tss.esp0 = (uint32_t) & (pcb[current].stackTop);
+		pcb[current].stackTop = pcb[current].prevStackTop;
+		tss.esp0 = (uint32_t)&(pcb[current].stackTop);
 		asm volatile("movl %0,%%esp" ::"m"(tmpStackTop));
 		asm volatile("popl %gs");
 		asm volatile("popl %fs");
@@ -232,14 +228,14 @@ void syscallFork(struct StackFrame *sf)
 		pcb[current].regs.eax = -1;
 		return;
 	}
-
+	
 	char *src = (char *)((current + 1) * 0x100000);
 	char *dst = (char *)((idx + 1) * 0x100000);
 	for (i = 0; i < 0x100000; ++i)
 	{
 		dst[i] = src[i];
 	}
-
+	
 	for (i = 0; i < MAX_STACK_SIZE; ++i)
 	{
 		pcb[idx].stack[i] = pcb[current].stack[i];
@@ -247,7 +243,7 @@ void syscallFork(struct StackFrame *sf)
 
 	pcb[idx].regs.ss = USEL(2 + idx * 2);
 	pcb[idx].regs.esp = pcb[current].regs.esp;
-	pcb[idx].regs.eflags = pcb[current].regs.eflags;
+	pcb[idx].regs.eflags = pcb[current].regs.eflags | 0x200;
 	pcb[idx].regs.cs = USEL(1 + idx * 2);
 	pcb[idx].regs.eip = pcb[current].regs.eip;
 	pcb[idx].regs.ds = USEL(2 + idx * 2);
@@ -255,11 +251,16 @@ void syscallFork(struct StackFrame *sf)
 	pcb[idx].regs.fs = USEL(2 + idx * 2);
 	pcb[idx].regs.gs = USEL(2 + idx * 2);
 	pcb[idx].regs.eax = 0; // 子进程的返回值为0
-	pcb[idx].stackTop = (uint32_t) & (pcb[idx].regs);
-	pcb[idx].prevStackTop = (uint32_t) & (pcb[idx].stackTop);
-	putNum(pcb[idx].stackTop);
-	putChar(' ');
-	putNum(pcb[idx].prevStackTop);
+	//edi, esi, ebp, xxx, ebx, edx, ecx, eax;
+	pcb[idx].regs.ecx = pcb[current].regs.ecx;
+	pcb[idx].regs.edx = pcb[current].regs.edx;
+	pcb[idx].regs.ebx = pcb[current].regs.ebx;
+	pcb[idx].regs.xxx = pcb[current].regs.xxx;
+	pcb[idx].regs.ebp = pcb[current].regs.ebp;
+	pcb[idx].regs.esi = pcb[current].regs.esi;
+	pcb[idx].regs.edi = pcb[current].regs.edi;
+	pcb[idx].stackTop = (uint32_t)&(pcb[idx].regs);
+	pcb[idx].prevStackTop = (uint32_t)&(pcb[idx].stackTop);
 	pcb[idx].state = STATE_RUNNABLE;
 	pcb[idx].timeCount = 0;
 	pcb[idx].sleepTime = 0;
@@ -268,7 +269,7 @@ void syscallFork(struct StackFrame *sf)
 	{
 		pcb[idx].name[i] = pcb[current].name[i];
 	}
-	// sf->eax = idx;
+	//sf->eax = idx;
 	pcb[current].regs.eax = idx;
 }
 
