@@ -164,15 +164,14 @@ void keyboardHandle(struct StackFrame *sf)
 	if (dev[STD_IN].value < 0)
 	{ // with process blocked
 		// TODO: deal with blocked situation
-		pt = (ProcessTable *)((uint32_t)(dev[STD_IN].pcb.prev) -
-								  (uint32_t) &
-							  (((ProcessTable *)0)->blocked));
+		dev[STD_IN].value++;
+		pt = (ProcessTable *)((uint32_t)(dev[STD_IN].pcb.prev) - (uint32_t)&(((ProcessTable *)0)->blocked));
 		dev[STD_IN].pcb.prev = (dev[STD_IN].pcb.prev)->prev;
 		(dev[STD_IN].pcb.prev)->next = &(dev[STD_IN].pcb);
 		pt->state = STATE_RUNNABLE;
 		pt->timeCount = 0;
 		pt->sleepTime = 0;
-		asm volatile("int $0x20");
+		//asm volatile("int $0x20");
 	}
 
 	return;
@@ -304,6 +303,7 @@ void syscallReadStdIn(struct StackFrame *sf)
 		while (bufferHead != bufferTail && i < size - 1)
 		{
 			character = getChar(keyBuffer[bufferHead]);
+			putChar(character);
 			if (character != 0)
 			{
 				asm volatile("movb %0, %%es:(%1)" ::"r"(character), "r"(str + i));
@@ -311,6 +311,7 @@ void syscallReadStdIn(struct StackFrame *sf)
 			}
 			bufferHead = (bufferHead + 1) % MAX_KEYBUFFER_SIZE;
 		}
+		asm volatile("movb $0x0, %%es:(%0)" ::"r"(str + i));
 		pcb[current].regs.eax = i;
 	}
 	else if(dev[STD_IN].value < 0)

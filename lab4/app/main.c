@@ -19,6 +19,7 @@ int uEntry(void)
 			break;
 	}
 
+
 	// For lab4.2
 	// Test 'Semaphore'
 	int i = 4;
@@ -65,6 +66,45 @@ int uEntry(void)
 	// TODO: You need to design and test the problem.
 	// Note that you can create your own functions.
 	// Requirements are demonstrated in the guide.
+	sem_t mutex;
+	sem_t full;
+	sem_t empty;
+	ret = 1;
+	sem_init(&mutex, 1);
+	sem_init(&full, 0);
+	sem_init(&empty, 3);
+	for (int i = 0; i < 4; ++i)
+	{
+		if (ret > 0)
+		{
+			ret = fork();
+		}
+	}
+	while (1)
+	{
+		if (ret == 0) // producer
+		{
+			sem_wait(&empty);
+			sem_wait(&mutex);
+			printf("Producer : produce\n");
+			sleep(128);
+			sem_post(&mutex);
+			sem_post(&full);
+		}
+		else if (ret <= 5 && ret > 0) // producer
+		{
+			sem_wait(&full);
+			sem_wait(&mutex);
+			printf("Consumer : Consume\n");
+			sleep(128);
+			sem_post(&mutex);
+			sem_post(&empty);
+		}
+	}
 
+
+	sem_destroy(&mutex);
+	sem_destroy(&full);
+	sem_destroy(&empty);
 	return 0;
 }
