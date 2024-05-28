@@ -3,6 +3,7 @@
 
 int uEntry(void)
 {
+	/*
 	// For lab4.1
 	// Test 'scanf'
 	int dec = 0;
@@ -61,7 +62,7 @@ int uEntry(void)
 		sem_destroy(&sem);
 		exit();
 	}
-
+*/
 	// For lab4.3
 	// TODO: You need to design and test the problem.
 	// Note that you can create your own functions.
@@ -69,15 +70,17 @@ int uEntry(void)
 	sem_t mutex;
 	sem_t full;
 	sem_t empty;
-	ret = 1;
+	int ret = 1;
 	sem_init(&mutex, 1);
 	sem_init(&full, 0);
 	sem_init(&empty, 3);
+	int idx;
 	for (int i = 0; i < 4; ++i)
 	{
 		if (ret > 0)
 		{
 			ret = fork();
+			idx = i;
 		}
 	}
 	while (1)
@@ -87,21 +90,21 @@ int uEntry(void)
 			sem_wait(&empty);
 			sem_wait(&mutex);
 			printf("Producer : produce\n");
+			printf("pid : %d\n", idx);
 			sleep(128);
 			sem_post(&mutex);
 			sem_post(&full);
 		}
-		else if (ret <= 5 && ret > 0) // producer
+		else if (ret <= 5 && ret > 0) // comsumer
 		{
 			sem_wait(&full);
 			sem_wait(&mutex);
-			printf("Consumer : Consume\n");
+			printf("Consumer : consume\n");
 			sleep(128);
 			sem_post(&mutex);
 			sem_post(&empty);
 		}
 	}
-
 
 	sem_destroy(&mutex);
 	sem_destroy(&full);
