@@ -3,7 +3,6 @@
 
 int uEntry(void)
 {
-	/*
 	// For lab4.1
 	// Test 'scanf'
 	int dec = 0;
@@ -62,7 +61,7 @@ int uEntry(void)
 		sem_destroy(&sem);
 		exit();
 	}
-*/
+/*
 	// For lab4.3
 	// TODO: You need to design and test the problem.
 	// Note that you can create your own functions.
@@ -109,5 +108,6 @@ int uEntry(void)
 	sem_destroy(&mutex);
 	sem_destroy(&full);
 	sem_destroy(&empty);
+*/
 	return 0;
 }

@@ -160,7 +160,6 @@ void keyboardHandle(struct StackFrame *sf)
 	// putChar(getChar(keyCode));
 	keyBuffer[bufferTail] = keyCode;
 	bufferTail = (bufferTail + 1) % MAX_KEYBUFFER_SIZE;
-
 	if (dev[STD_IN].value < 0)
 	{ // with process blocked
 		// TODO: deal with blocked situation
@@ -171,9 +170,7 @@ void keyboardHandle(struct StackFrame *sf)
 		pt->state = STATE_RUNNABLE;
 		pt->timeCount = 0;
 		pt->sleepTime = 0;
-		//asm volatile("int $0x20");
 	}
-
 	return;
 }
 
